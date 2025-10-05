@@ -1,0 +1,17 @@
+name: Trigger Netlify rebuild on guestbook change
+
+on:
+  issues:
+    types: [labeled, unlabeled, deleted, closed, reopened]
+
+jobs:
+  trigger-netlify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Netlify build hook
+        env:
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: |
+          echo "Triggering Netlify build..."
+          curl -X POST -d '{}' "$NETLIFY_BUILD_HOOK"
