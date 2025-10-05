@@ -1,17 +1,24 @@
-name: Trigger Netlify rebuild on guestbook change
+name: Trigger Netlify rebuild on guestbook label changes
 
 on:
   issues:
-    types: [labeled, unlabeled, deleted, closed, reopened]
+    types: [labeled, unlabeled, closed, reopened, deleted, edited]
 
 jobs:
-  trigger-netlify:
+  trigger:
+    # Only run if 'guestbook' label is present OR was just applied/removed
+    if: >
+      contains(toJson(github.event.issue.labels), 'guestbook') ||
+      (github.event.action == 'labeled' && github.event.label.name == 'guestbook') ||
+      (github.event.action == 'unlabeled' && github.event.label.name == 'guestbook')
     runs-on: ubuntu-latest
-
+    concurrency:
+      group: netlify-rebuild
+      cancel-in-progress: true
     steps:
-      - name: Trigger Netlify build hook
+      - name: Debounce (wait up to 90s to batch events)
+        run: sleep 90
+      - name: Trigger Netlify build
         env:
           NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
-        run: |
-          echo "Triggering Netlify build..."
-          curl -X POST -d '{}' "$NETLIFY_BUILD_HOOK"
+        run: curl -sS -X POST -d '{}' "$NETLIFY_BUILD_HOOK"
