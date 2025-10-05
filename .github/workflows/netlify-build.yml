@@ -17,7 +17,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Debounce (wait up to 90s to batch events)
-        run: sleep 90
+        run: sleep 30
       - name: Trigger Netlify build
         env:
           NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
